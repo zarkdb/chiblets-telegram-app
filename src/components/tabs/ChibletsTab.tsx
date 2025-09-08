@@ -85,10 +85,51 @@ const mockChiblets = [
 ];
 
 export default function ChibletsTab({ user }: ChibletsTabProps) {
-  const [chiblets, setChiblets] = useState(mockChiblets);
+  const [chiblets, setChiblets] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedChiblet, setSelectedChiblet] = useState<any>(null);
   const [filterRarity, setFilterRarity] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('level');
+
+  // Fetch user's chiblets
+  useEffect(() => {
+    const fetchChiblets = async () => {
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/chiblets?userId=${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setChiblets(data.chiblets || []);
+        } else {
+          console.error('Failed to fetch chiblets, status:', response.status);
+          // Only show mock data in development mode for the specific dev user
+          if (process.env.NODE_ENV === 'development' && user.id === 'dev_user') {
+            console.log('Using fallback mock chiblet for dev user');
+            setChiblets(mockChiblets.slice(0, 1)); // Just show one chiblet
+          } else {
+            setChiblets([]); // Show empty for real users
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching chiblets:', error);
+        // Only fallback for dev user in development
+        if (process.env.NODE_ENV === 'development' && user.id === 'dev_user') {
+          console.log('Using fallback mock chiblet for dev user after error');
+          setChiblets(mockChiblets.slice(0, 1));
+        } else {
+          setChiblets([]); // Show empty for real users
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchChiblets();
+  }, [user]);
 
   // Filter and sort chiblets
   const filteredChiblets = chiblets
@@ -147,21 +188,28 @@ export default function ChibletsTab({ user }: ChibletsTabProps) {
 
       {/* Chiblets Grid */}
       <div className="flex-1 overflow-y-auto px-2 pb-2 custom-scrollbar">
-        <div className="grid grid-cols-2 gap-2">
-          {filteredChiblets.map((chiblet, index) => (
-            <motion.div
-              key={chiblet.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <ChibletCard
-                chiblet={chiblet}
-                onClick={() => setSelectedChiblet(chiblet)}
-              />
-            </motion.div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="text-2xl mb-2">⌛</div>
+            <p className="text-gray-500 text-sm">Loading your chiblets...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            {filteredChiblets.map((chiblet, index) => (
+              <motion.div
+                key={chiblet.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <ChibletCard
+                  chiblet={chiblet}
+                  onClick={() => setSelectedChiblet(chiblet)}
+                />
+              </motion.div>
+            ))}
+          </div>
+        )}
 
         {filteredChiblets.length === 0 && (
           <div className="text-center py-8">

@@ -25,7 +25,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate Telegram data
+    // Handle development mode
+    if (process.env.NODE_ENV === 'development' && initData.includes('dev123')) {
+      const mockUser = {
+        id: 123456789, // Make sure this is a number, not string
+        first_name: 'Dev',
+        last_name: 'User',
+        username: 'devuser',
+      };
+      const user = await processUserFromTelegram(mockUser);
+      return NextResponse.json({
+        success: true,
+        user: {
+          id: user.id,
+          telegramId: user.telegramId,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          username: user.telegramUsername,
+          photoUrl: user.photoUrl,
+          wchibi: user.wchibi,
+          gems: user.gems,
+          level: user.level,
+          experience: user.experience,
+          currentArea: user.currentArea,
+          currentStage: user.currentStage,
+        }
+      });
+    }
+
+    // Validate Telegram data for production
     const telegramData = validateTelegramWebAppData(initData, botToken);
     if (!telegramData || !telegramData.user) {
       return NextResponse.json(

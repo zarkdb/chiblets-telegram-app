@@ -143,23 +143,48 @@ export function verifyUserToken(token: string) {
 export function getTelegramInitData(): string | null {
   if (typeof window === 'undefined') return null;
   
+  console.log('🔍 Checking for Telegram initData...');
+  console.log('URL:', window.location.href);
+  console.log('Telegram object:', (window as any).Telegram);
+  console.log('WebApp:', (window as any).Telegram?.WebApp);
+  console.log('InitData:', (window as any).Telegram?.WebApp?.initData);
+  
   // Try to get from URL hash first
   const hash = window.location.hash.substring(1);
+  console.log('URL hash:', hash);
   if (hash.includes('tgWebAppData=')) {
     const params = new URLSearchParams(hash);
-    return decodeURIComponent(params.get('tgWebAppData') || '');
+    const initData = decodeURIComponent(params.get('tgWebAppData') || '');
+    console.log('✅ Found initData in URL hash:', initData);
+    return initData;
   }
 
-  // Try to get from Telegram WebApp
+  // Try to get from URL search params
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('tgWebAppData')) {
+    const initData = decodeURIComponent(urlParams.get('tgWebAppData') || '');
+    console.log('✅ Found initData in URL params:', initData);
+    return initData;
+  }
+
+  // Try to get from Telegram WebApp (most common case)
   if ((window as any).Telegram?.WebApp?.initData) {
-    return (window as any).Telegram.WebApp.initData;
+    const initData = (window as any).Telegram.WebApp.initData;
+    console.log('✅ Found initData from Telegram WebApp:', initData);
+    return initData;
+  }
+
+  // Wait a bit and try again (Telegram might still be loading)
+  if ((window as any).Telegram?.WebApp && !(window as any).Telegram.WebApp.initData) {
+    console.log('⏳ Telegram WebApp exists but no initData yet, will retry...');
   }
 
   // For development, you can return mock data
   if (process.env.NODE_ENV === 'development') {
-    console.warn('No Telegram initData found, using mock data for development');
+    console.warn('❌ No Telegram initData found, using mock data for development');
     return null; // Return null to handle in development mode
   }
 
+  console.error('❌ No Telegram initData found anywhere');
   return null;
 }
