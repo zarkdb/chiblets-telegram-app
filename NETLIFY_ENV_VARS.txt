@@ -1,0 +1,23 @@
+Add these environment variables to Netlify:
+
+Go to: https://app.netlify.com/projects/chibletstele/configuration/env
+
+Variable Name: DATABASE_URL
+Value: postgresql://neondb_owner:npg_V2uxYZAFrt0G@ep-purple-fog-a9mvjmdk-pooler.gwc.azure.neon.tech/neondb?sslmode=require&channel_binding=require
+
+Variable Name: TELEGRAM_BOT_TOKEN
+Value: 8270321275:AAG9kgRwVbFUojZ6cYLisFEaaf--IVKivTU
+
+Variable Name: JWT_SECRET
+Value: b63fed4a3b18e97cfa62c6050dbf53a651b007c4e9b2cce7cc9df32429249821
+
+Variable Name: NEXT_PUBLIC_APP_URL
+Value: https://chibletstele.netlify.app
+
+Variable Name: NEXT_PUBLIC_GAME_NAME
+Value: ChibletsLite
+
+Variable Name: NODE_ENV
+Value: production
+
+After adding all variables, click "Save" and wait 2-3 minutes for the deployment to update.
