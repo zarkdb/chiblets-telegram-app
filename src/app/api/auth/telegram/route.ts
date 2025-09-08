@@ -28,10 +28,12 @@ export async function POST(request: NextRequest) {
     // Handle development mode
     if (process.env.NODE_ENV === 'development' && initData.includes('dev123')) {
       const mockUser = {
-        id: 123456789, // Make sure this is a number, not string
+        id: 123456789,
         first_name: 'Dev',
         last_name: 'User',
         username: 'devuser',
+        auth_date: Math.floor(Date.now() / 1000),
+        hash: 'dev_hash'
       };
       const user = await processUserFromTelegram(mockUser);
       return NextResponse.json({
