@@ -1,0 +1,56 @@
+// Add these fields to the UserChiblet model in your existing schema.prisma
+
+model UserChiblet {
+  id                String         @id @default(cuid())
+  userId            String
+  speciesId         String
+  name              String?        // Custom name given by user
+  level             Int            @default(1)
+  experience        Int            @default(0)
+  hp                Int
+  maxHp             Int
+  attack            Int
+  defense           Int
+  currentEnergy     Int?           // Current energy level
+  maxEnergy         Int?           // Maximum energy capacity (calculated from rarity)
+  lastEnergyUpdate  DateTime?      // Last time energy was updated
+  isActive          Boolean        @default(false) // Currently fighting
+  equipment         Json?          // Equipped items
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  
+  // Relations
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  species           ChibletSpecies @relation(fields: [speciesId], references: [id])
+  battles           Battle[]
+  
+  @@map("user_chiblets")
+}
+
+// Also add currentStage to User model
+model User {
+  id               String    @id @default(cuid())
+  telegramId       String    @unique
+  telegramUsername String?
+  firstName        String?
+  lastName         String?
+  photoUrl         String?
+  coins            Int       @default(100)
+  gems             Int       @default(10)
+  experience       Int       @default(0)
+  level            Int       @default(1)
+  currentArea      Int       @default(1)
+  currentStage     Int       @default(1)     // Add this field
+  lastOnline       DateTime  @default(now())
+  offlineRewards   Json?     // Store offline progress
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  
+  // Relations
+  chiblets         UserChiblet[]
+  battleHistory    Battle[]
+  achievements     UserAchievement[]
+  dailyRewards     DailyReward[]
+  
+  @@map("users")
+}

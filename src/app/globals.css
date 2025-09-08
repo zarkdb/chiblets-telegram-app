@@ -1,0 +1,203 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Telegram theme CSS variables */
+:root {
+  --tg-theme-bg-color: #ffffff;
+  --tg-theme-text-color: #000000;
+  --tg-theme-hint-color: #999999;
+  --tg-theme-link-color: #0088cc;
+  --tg-theme-button-color: #0088cc;
+  --tg-theme-button-text-color: #ffffff;
+}
+
+/* Override with Telegram colors when available */
+.tg-theme-dark {
+  --tg-theme-bg-color: #1d1d1d;
+  --tg-theme-text-color: #ffffff;
+  --tg-theme-hint-color: #666666;
+}
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  /* Prevent zoom on iOS */
+  -webkit-text-size-adjust: 100%;
+  /* Prevent scrolling when full screen */
+  overflow: hidden;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--tg-theme-text-color, #000000);
+  background-color: var(--tg-theme-bg-color, #ffffff);
+  user-select: none;
+  /* Prevent overscroll bounce on iOS */
+  overscroll-behavior: none;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile */
+  /* Prevent horizontal scrolling */
+  overflow-x: hidden;
+}
+
+/* Game specific styles */
+.game-container {
+  height: 100vh;
+  height: 100dvh;
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+  max-width: 480px; /* Max width for larger screens */
+  margin: 0 auto;
+}
+
+/* Custom scrollbar for game elements */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Animation utilities */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(99, 102, 241, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.8);
+  }
+}
+
+@keyframes coin-collect {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(0) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-coin-collect {
+  animation: coin-collect 0.6s ease-in-out forwards;
+}
+
+/* Button styles */
+.btn-primary {
+  @apply bg-game-primary text-white font-semibold py-3 px-6 rounded-lg shadow-lg transform transition-all duration-200 active:scale-95;
+}
+
+.btn-primary:hover {
+  @apply bg-game-secondary shadow-xl;
+}
+
+.btn-secondary {
+  @apply bg-gray-200 text-gray-800 font-semibold py-3 px-6 rounded-lg shadow-md transform transition-all duration-200 active:scale-95;
+}
+
+/* Card styles */
+.game-card {
+  @apply bg-white rounded-xl shadow-lg p-4 border border-gray-100;
+}
+
+.chiblet-card {
+  @apply game-card transform transition-all duration-300 hover:scale-105 hover:shadow-xl;
+}
+
+/* Rarity borders */
+.rarity-common {
+  @apply border-rarity-common;
+}
+
+.rarity-rare {
+  @apply border-rarity-rare border-2;
+}
+
+.rarity-epic {
+  @apply border-rarity-epic border-2;
+}
+
+.rarity-legendary {
+  @apply border-rarity-legendary border-4;
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+}
+
+/* Loading animations */
+.loading-spinner {
+  @apply animate-spin rounded-full h-8 w-8 border-b-2 border-game-primary;
+}
+
+/* Safe area for iOS devices */
+.safe-area {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Hide default scrollbars */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Touch feedback */
+.touch-feedback {
+  @apply transform transition-transform duration-100 active:scale-95;
+}
+
+/* Prevent text selection in game elements */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}

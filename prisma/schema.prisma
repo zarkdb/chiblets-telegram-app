@@ -1,0 +1,245 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String    @id @default(cuid())
+  telegramId       String    @unique
+  telegramUsername String?
+  firstName        String?
+  lastName         String?
+  photoUrl         String?
+  wchibi           Int       @default(1000)  // wCHIBI currency
+  gems             Int       @default(10)
+  experience       Int       @default(0)
+  level            Int       @default(1)
+  currentArea      Int       @default(1)
+  currentStage     Int       @default(1)
+  totalWins        Int       @default(0)     // For profile stats
+  totalChiblets    Int       @default(0)     // For profile stats
+  lastOnline       DateTime  @default(now())
+  offlineRewards   Json?     // Store offline progress
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  
+  // Relations
+  chiblets         UserChiblet[]
+  battleHistory    Battle[]
+  achievements     UserAchievement[]
+  dailyRewards     DailyReward[]
+  taskCompletions  TaskCompletion[]
+  spinWheelSpins   SpinWheelSpin[]
+  
+  @@map("users")
+}
+
+model ChibletSpecies {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  type        String  // "fire", "water", "earth", "air", etc.
+  rarity      String  // "common", "rare", "epic", "legendary"
+  baseHp      Int
+  baseAttack  Int
+  baseDefense Int
+  spriteUrl   String?
+  description String?
+  
+  // Relations
+  userChiblets UserChiblet[]
+  
+  @@map("chiblet_species")
+}
+
+model UserChiblet {
+  id                String         @id @default(cuid())
+  userId            String
+  speciesId         String
+  name              String?        // Custom name given by user
+  level             Int            @default(1) // Max level is 10
+  experience        Int            @default(0)
+  hp                Int
+  maxHp             Int
+  attack            Int
+  defense           Int
+  currentEnergy     Int?           // Current energy level
+  lastEnergyUpdate  DateTime?      // Last time energy was updated
+  isActive          Boolean        @default(false) // Currently fighting
+  equipment         Json?          // Equipped items
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  
+  // Relations
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  species       ChibletSpecies @relation(fields: [speciesId], references: [id])
+  battles       Battle[]
+  
+  @@map("user_chiblets")
+}
+
+model Monster {
+  id          String @id @default(cuid())
+  name        String
+  type        String
+  area        Int    // Which area/stage this monster appears in
+  level       Int
+  hp          Int
+  attack      Int
+  defense     Int
+  expReward   Int
+  coinReward  Int
+  gemReward   Int    @default(0)
+  spriteUrl   String?
+  description String?
+  
+  // Relations
+  battles     Battle[]
+  
+  @@map("monsters")
+}
+
+model Battle {
+  id           String      @id @default(cuid())
+  userId       String
+  chibletId    String
+  monsterId    String
+  status       BattleStatus @default(ONGOING)
+  rounds       Json        // Store battle rounds data
+  expGained    Int         @default(0)
+  coinsGained  Int         @default(0)
+  gemsGained   Int         @default(0)
+  startedAt    DateTime    @default(now())
+  completedAt  DateTime?
+  
+  // Relations
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chiblet      UserChiblet @relation(fields: [chibletId], references: [id])
+  monster      Monster     @relation(fields: [monsterId], references: [id])
+  
+  @@map("battles")
+}
+
+model Achievement {
+  id          String @id @default(cuid())
+  name        String @unique
+  description String
+  type        String // "battles_won", "level_reached", "chiblets_collected", etc.
+  requirement Json   // Condition to unlock
+  reward      Json   // Coins, gems, or special items
+  iconUrl     String?
+  
+  // Relations
+  userAchievements UserAchievement[]
+  
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime    @default(now())
+  claimed       Boolean     @default(false)
+  
+  // Relations
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+  
+  @@unique([userId, achievementId])
+  @@map("user_achievements")
+}
+
+model DailyReward {
+  id          String   @id @default(cuid())
+  userId      String
+  day         Int      // Day number in sequence (1-7, then resets)
+  reward      Json     // Coins, gems, chiblets, etc.
+  claimedAt   DateTime @default(now())
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("daily_rewards")
+}
+
+model GameConfig {
+  id          String @id @default(cuid())
+  key         String @unique
+  value       Json
+  description String?
+  updatedAt   DateTime @updatedAt
+  
+  @@map("game_config")
+}
+
+model Task {
+  id          String @id @default(cuid())
+  title       String
+  description String
+  type        TaskType
+  reward      Json   // {type: "coins", amount: 100} or {type: "chiblet", rarity: "common"}
+  url         String? // For social media tasks
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  completions TaskCompletion[]
+  
+  @@map("tasks")
+}
+
+model TaskCompletion {
+  id          String      @id @default(cuid())
+  userId      String
+  taskId      String
+  status      TaskStatus  @default(PENDING)
+  completedAt DateTime?
+  claimedAt   DateTime?
+  createdAt   DateTime    @default(now())
+  
+  // Relations
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task        Task        @relation(fields: [taskId], references: [id])
+  
+  @@unique([userId, taskId])
+  @@map("task_completions")
+}
+
+model SpinWheelSpin {
+  id          String   @id @default(cuid())
+  userId      String
+  reward      Json     // The reward received from the spin
+  spunAt      DateTime @default(now())
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("spin_wheel_spins")
+}
+
+enum BattleStatus {
+  ONGOING
+  WON
+  LOST
+  ABANDONED
+}
+
+enum TaskType {
+  TWITTER_FOLLOW
+  TWITTER_LIKE
+  TWITTER_RETWEET
+  TWITTER_COMMENT
+  TELEGRAM_JOIN
+  DAILY_LOGIN
+}
+
+enum TaskStatus {
+  PENDING
+  COMPLETED
+  CLAIMED
+}
