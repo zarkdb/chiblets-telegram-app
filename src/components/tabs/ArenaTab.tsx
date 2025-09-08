@@ -161,8 +161,51 @@ export default function ArenaTab({ user }: ArenaTabProps) {
   const [finalResult, setFinalResult] = useState<'win' | 'lose' | 'draw' | null>(null);
   const [mysberryCost] = useState(10);
   const [energyCost] = useState(1);
+  const [userChiblets, setUserChiblets] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const availableChiblets = mockChiblets.filter(c => c.currentEnergy > 0);
+  // Fetch user's real chiblets
+  useEffect(() => {
+    const fetchUserChiblets = async () => {
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/chiblets?userId=${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          // Transform chiblets to include PvP stats (speed, strength, stamina)
+          const transformedChiblets = data.chiblets.map((chiblet: any) => ({
+            ...chiblet,
+            speed: Math.floor((chiblet.attack + 20) / 3), // Convert to speed stat
+            strength: Math.floor((chiblet.attack + chiblet.defense) / 2), // Convert to strength
+            stamina: Math.floor((chiblet.hp + chiblet.defense) / 3), // Convert to stamina
+          }));
+          setUserChiblets(transformedChiblets);
+        } else {
+          console.error('Failed to fetch user chiblets for arena');
+          // Fallback to mock data only for dev user
+          if (process.env.NODE_ENV === 'development' && user.id === 'dev_user') {
+            setUserChiblets(mockChiblets.slice(0, 1));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user chiblets for arena:', error);
+        // Fallback for dev user only
+        if (process.env.NODE_ENV === 'development' && user.id === 'dev_user') {
+          setUserChiblets(mockChiblets.slice(0, 1));
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserChiblets();
+  }, [user]);
+
+  const availableChiblets = userChiblets.filter(c => c.currentEnergy > 0);
   const currentUser = { name: user?.name || 'You', rank: 0, avatar: '🎮' };
 
   const selectChiblet = (chiblet: any) => {
@@ -350,9 +393,21 @@ export default function ArenaTab({ user }: ArenaTabProps) {
               <h1 className="text-xl font-semibold text-gray-800">Select Chiblet</h1>
             </div>
 
-            <div className="space-y-3">
-              {availableChiblets.map((chiblet, index) => (
-                <motion.div
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="text-2xl mb-2">⌛</div>
+                <p className="text-gray-500 text-sm">Loading your chiblets...</p>
+              </div>
+            ) : availableChiblets.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-3xl mb-3">😴</div>
+                <h3 className="text-base font-semibold text-gray-700 mb-2">No Chiblets Available</h3>
+                <p className="text-gray-500 text-sm px-4">All your chiblets are resting! Wait for their energy to recharge or get more chiblets.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {availableChiblets.map((chiblet, index) => (
+                  <motion.div
                   key={chiblet.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -382,8 +437,9 @@ export default function ArenaTab({ user }: ArenaTabProps) {
                     </div>
                   </div>
                 </motion.div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </motion.div>
         )}
 
