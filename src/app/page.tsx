@@ -1,5 +1,6 @@
 'use client';
 
+// Build timestamp: 2025-01-08T19:17:40Z - Force fresh build
 import { useAuth } from '@/components/AuthProvider';
 import LoadingScreen from '@/components/LoadingScreen';
 import ErrorScreen from '@/components/ErrorScreen';
