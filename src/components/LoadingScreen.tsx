@@ -14,15 +14,11 @@ export default function LoadingScreen() {
       // Set viewport to prevent scrolling during loading (optional API, not in typings)
       (tg as any).disableVerticalSwipes?.();
       
-      // Optional: Set header color to match loading screen
-      if (tg.setHeaderColor) {
-        tg.setHeaderColor('#87CEEB'); // Light blue to match typical loading screen
-      }
+      // Optional: Set header color to match loading screen (optional API, not in typings)
+      (tg as any).setHeaderColor?.('#87CEEB');
       
-      // Optional: Set background color
-      if (tg.setBackgroundColor) {
-        tg.setBackgroundColor('#87CEEB');
-      }
+      // Optional: Set background color (optional API, not in typings)
+      (tg as any).setBackgroundColor?.('#87CEEB');
     }
     
     // Prevent viewport issues on mobile
