@@ -1,41 +1,52 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import Image from 'next/image';
 
 export default function LoadingScreen() {
+  useEffect(() => {
+    // Ensure Telegram WebApp is expanded and ready
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+      const tg = window.Telegram.WebApp;
+      tg.ready();
+      tg.expand();
+      
+      // Set viewport to prevent scrolling during loading
+      tg.disableVerticalSwipes();
+      
+      // Optional: Set header color to match loading screen
+      if (tg.setHeaderColor) {
+        tg.setHeaderColor('#87CEEB'); // Light blue to match typical loading screen
+      }
+      
+      // Optional: Set background color
+      if (tg.setBackgroundColor) {
+        tg.setBackgroundColor('#87CEEB');
+      }
+    }
+    
+    // Prevent viewport issues on mobile
+    const viewport = document.querySelector('meta[name=viewport]');
+    if (viewport) {
+      viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover');
+    }
+  }, []);
+
   return (
-    <div className="game-container flex items-center justify-center bg-gradient-to-b from-blue-50 to-purple-50">
-      <div className="text-center">
-        {/* Cute loading animation */}
-        <div className="mb-8">
-          <div className="relative">
-            <div className="w-20 h-20 bg-game-primary rounded-full animate-bounce mx-auto"></div>
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-20 h-20 bg-game-secondary rounded-full animate-ping opacity-75"></div>
-          </div>
-        </div>
-        
-        {/* Loading text */}
-        <h1 className="text-3xl font-bold text-game-primary mb-4 font-game">
-          ChibletsLite
-        </h1>
-        
-        <div className="text-gray-600 mb-6">
-          <div className="animate-pulse">Loading your chiblets...</div>
-        </div>
-        
-        {/* Loading spinner */}
-        <div className="flex justify-center space-x-2">
-          <div className="w-3 h-3 bg-game-primary rounded-full animate-bounce"></div>
-          <div className="w-3 h-3 bg-game-secondary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-          <div className="w-3 h-3 bg-game-accent rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-        </div>
-        
-        {/* Fun loading tips */}
-        <div className="mt-8 text-sm text-gray-500 max-w-xs mx-auto">
-          <div className="animate-pulse">
-            💡 Tip: Your chiblets continue fighting even when you're away!
-          </div>
-        </div>
+    <div className="fixed inset-0 w-full h-full overflow-hidden">
+      {/* Telegram Mini App optimized loading screen */}
+      <div className="relative w-full h-full">
+        <Image
+          src="/images/loading.png"
+          alt="Chiblets Loading Screen"
+          fill
+          className="object-cover object-center"
+          priority
+          sizes="100vw"
+          quality={100}
+          placeholder="blur"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyLli7kuK4SZSG5A+Hbz2AehNnRsyAQMZdh"
+        />
       </div>
     </div>
   );

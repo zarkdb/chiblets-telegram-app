@@ -40,9 +40,18 @@ export function useTelegramAuth() {
     setAuthState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
+      // Add timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
       const response = await axios.post('/api/auth/telegram', {
         initData,
+      }, {
+        signal: controller.signal,
+        timeout: 10000
       });
+      
+      clearTimeout(timeoutId);
 
       const { user, success } = response.data;
       if (!success) {
@@ -63,7 +72,36 @@ export function useTelegramAuth() {
 
       return { success: true, user, token };
     } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 'Authentication failed';
+      console.error('🚨 Authentication error:', error);
+      const errorMessage = error.code === 'ECONNABORTED' || error.name === 'AbortError' 
+        ? 'Connection timeout - check your internet connection' 
+        : error.response?.data?.error || 'Authentication failed';
+      
+      // In development mode, fall back to offline mode on any error
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔄 Development mode: Using offline fallback due to auth error...');
+        setAuthState({
+          user: {
+            id: 'dev_user_fallback',
+            telegramId: '123456789',
+            firstName: 'Dev',
+            lastName: 'User (Offline)',
+            username: 'devuser',
+            coins: 1000,
+            gems: 50,
+            level: 1,
+            experience: 0,
+            currentArea: 1,
+            chiblets: [],
+            achievements: [],
+          },
+          token: 'dev_token_fallback',
+          loading: false,
+          error: null,
+          isAuthenticated: true,
+        });
+        return { success: true };
+      }
       
       setAuthState(prev => ({
         ...prev,
@@ -127,6 +165,7 @@ export function useTelegramAuth() {
         } catch (error) {
           console.error('❌ Mock authentication failed:', error);
           // Fallback to simple mock if API fails
+          console.log('🔄 Using offline fallback authentication...');
           setAuthState({
             user: {
               id: 'dev_user',
