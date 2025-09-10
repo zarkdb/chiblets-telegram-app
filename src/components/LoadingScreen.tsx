@@ -11,8 +11,8 @@ export default function LoadingScreen() {
       tg.ready();
       tg.expand();
       
-      // Set viewport to prevent scrolling during loading
-      tg.disableVerticalSwipes();
+      // Set viewport to prevent scrolling during loading (optional API, not in typings)
+      (tg as any).disableVerticalSwipes?.();
       
       // Optional: Set header color to match loading screen
       if (tg.setHeaderColor) {
